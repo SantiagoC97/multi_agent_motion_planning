@@ -1,0 +1,6 @@
+# SmartRide Planner
+# The project uses Python standard library modules.
+# Tkinter is included with most standard Python installations.
+
+# Recommended Python version:
+python>=3.10
