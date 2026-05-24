@@ -1,0 +1,34 @@
+SmartRide Planner — Resultados de pruebas
+
+Comando utilizado:
+
+python tests.py
+
+Resultado esperado:
+
+28 OK | 0 ERROR | Total: 28
+
+Casos validados:
+
+1. A* sin obstáculos.
+2. A* con obstáculos.
+3. BFS encuentra ruta válida.
+4. Dijkstra encuentra ruta válida.
+5. Greedy Best-First encuentra ruta válida.
+6. Asignación múltiples taxis/usuarios.
+7. Colisión same-cell.
+8. Colisión swap.
+9. Cruce local de rutas.
+10. Escenario aleatorio reproducible con seed.
+11. Escenario aleatorio sin superposición.
+12. Escenario aleatorio con usuarios alcanzables.
+13. Replaneación dinámica ante taxi detenido.
+14. Configuración de número de taxis.
+15. Configuración de número de usuarios.
+16. Derecho de paso favorece usuario urgente.
+17. Simulación acepta todos los algoritmos de ruta.
+18. Simulación corre sin superposición de taxis.
+
+Conclusión:
+
+La suite de pruebas valida el comportamiento principal del sistema, incluyendo planeación de rutas, asignación multiagente, manejo de colisiones, replaneación dinámica y configuración de escenarios.
