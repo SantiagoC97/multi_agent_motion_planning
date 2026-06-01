@@ -1,52 +1,703 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[12pt,a4paper]{article}
 
+% =========================
+% PAQUETES
+% =========================
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\usepackage{cite}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{ragged2e}
+\usepackage{fancyhdr}
+\usepackage{titling}
+\usepackage{xcolor}
 
-\title{Planeación de Movimiento en Robótica Multiagente mediante Búsqueda en Grafos}
 
-\author{
-\IEEEauthorblockN{Santiago Cano Orozco, belsy jhossira mena, jennifer miranda}
-\IEEEauthorblockA{
+% =========================
+% CONFIGURACIÓN GENERAL
+% =========================
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+\setstretch{1.25}
+\raggedbottom
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue,
+    citecolor=black
+}
+
+% =========================
+% COMANDO PARA FIGURAS SEGURAS
+% =========================
+\newcommand{\safeimage}[3]{
+\begin{figure}[H]
+\centering
+\IfFileExists{#1}{
+    \includegraphics[width=#2\textwidth]{#1}
+}{
+    \fbox{
+    \begin{minipage}[c][5cm][c]{0.85\textwidth}
+    \centering
+    \textbf{Imagen pendiente}\\
+    Archivo esperado: \texttt{#1}
+    \end{minipage}}
+}
+\caption{#3}
+\end{figure}
+}
+
+% =========================
+% ENCABEZADO Y PIE
+% =========================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Métodos y Modelos Computacionales}
+\fancyhead[R]{\small Universidad Tecnológica de Pereira}
+\fancyfoot[L]{\small Jennifer Gisel Miranda Encizo -- Belsy Jhossira Mena Renteria -- Santiago Cano Orozco}
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\small 2026}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% =========================
+% PORTADA
+% =========================
+\pretitle{\begin{center}\vspace*{1.5cm}\LARGE\bfseries}
+\posttitle{\par\end{center}\vspace{1cm}}
+\preauthor{\begin{center}\large}
+\postauthor{\par\end{center}}
+\predate{\begin{center}\large}
+\postdate{\par\end{center}\vspace*{\fill}}
+
+\title{
+\IfFileExists{Logo_UTP.png}{
+\includegraphics[width=4cm]{Logo_UTP.png}\\[1.2cm]
+}{
+\vspace*{1cm}
+}
+PLANEACIÓN DE MOVIMIENTO EN ROBÓTICA MULTI-AGENTE
+}
+
+\author{%
+Jennifer Gisel Miranda Encizo\\[0.4ex]
+Belsy Jhossira Mena Renteria\\[0.4ex]
+Santiago Cano Orozco
+}
+
+\date{%
+MIE -- Métodos y Modelos Computacionales\\
 Universidad Tecnológica de Pereira\\
-Métodos y Modelos Computacionales
-}
+2026
 }
 
+% =========================
+% DOCUMENTO
+% =========================
 \begin{document}
 
 \maketitle
+\thispagestyle{empty}
+\newpage
 
-\begin{abstract}
-Este informe presenta el desarrollo de SmartRide Planner, una simulación de planeación de movimiento multiagente sobre una grilla discreta de 20x20. El sistema modela taxis autónomos que deben recoger usuarios con diferentes prioridades, evitando obstáculos y colisiones. Se implementan algoritmos de búsqueda de rutas como A*, Dijkstra, BFS y Greedy Best-First, junto con criterios de asignación basados en cercanía y prioridad.
-\end{abstract}
+\tableofcontents
+\newpage
 
+\pagenumbering{arabic}
+
+% =========================
+% RESUMEN
+% =========================
+\section*{Resumen}
+\addcontentsline{toc}{section}{Resumen}
+\justifying
+
+Este informe presenta el desarrollo de \textit{SmartRide Planner}, una simulación urbana de planeación de movimiento multi-agente implementada sobre una grilla discreta de $20 \times 20$. El sistema modela un servicio de transporte mediante taxis autónomos que deben recoger usuarios distribuidos en el entorno, evitando obstáculos representados como edificios y respetando restricciones de colisión entre agentes.
+
+La solución fue desarrollada en Python siguiendo una arquitectura modular compuesta por una interfaz gráfica, un motor de simulación, un módulo de algoritmos de búsqueda de rutas, un módulo de asignación de tareas, un gestor de colisiones y una suite de pruebas. En la versión final se implementaron cuatro algoritmos de ruta: A*, Dijkstra, BFS y Greedy Best-First Search. Además, se incorporaron dos criterios de asignación: taxi más cercano y usuario prioritario.
+
+El problema se formuló como una búsqueda sobre grafos, donde cada celda transitable del entorno corresponde a un nodo y cada movimiento válido hacia una celda adyacente representa una arista. A partir de esta representación, se evalúan rutas entre taxis y usuarios considerando distancia, prioridad de usuarios y restricciones de ocupación.
+
+La validación del sistema se realizó mediante una suite de pruebas que verifica el cálculo de rutas, la asignación multi-agente, la detección de colisiones, la prevención de cruces conflictivos, la generación aleatoria de escenarios, la replaneación dinámica y la configuración variable de taxis y usuarios. El resultado final de la suite fue de 28 pruebas aprobadas y 0 errores.
+
+\textbf{Palabras clave:} robótica multi-agente, planeación de movimiento, grafos, A*, Dijkstra, BFS, Greedy Best-First, optimización, simulación computacional, asignación de tareas.
+
+\newpage
+
+% =========================
+% ABSTRACT
+% =========================
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
+\justifying
+
+This report presents the development of \textit{SmartRide Planner}, an urban multi-agent motion planning simulation implemented on a discrete $20 \times 20$ grid. The system models a transportation service in which autonomous taxi agents must pick up users distributed across the environment while avoiding obstacles and respecting collision constraints.
+
+The solution was developed in Python using a modular architecture composed of a graphical interface, a simulation engine, a route planning module, a task assignment module, a collision manager, and a test suite. The final version implements four route planning algorithms: A*, Dijkstra, BFS, and Greedy Best-First Search. It also includes two assignment criteria: nearest taxi and priority user.
+
+The problem is formulated as a graph search problem, where each traversable grid cell corresponds to a node and each valid movement to an adjacent cell represents an edge. Based on this representation, the system evaluates routes between taxis and users while considering distance, user priority, and occupancy restrictions.
+
+The system was validated through a test suite covering pathfinding, multi-agent assignment, collision handling, route replanning, random scenario generation, and configurable numbers of taxis and users. The final test result was 28 successful tests and 0 errors.
+
+\textbf{Keywords:} multi-agent robotics, motion planning, graph search, A*, Dijkstra, BFS, Greedy Best-First, optimization, computational simulation, task assignment.
+
+\newpage
+
+% =========================
+% PRESENTACIÓN
+% =========================
+\section{Presentación}
+\justifying
+
+El presente trabajo corresponde al desarrollo del examen final de la asignatura \textbf{MIE -- Métodos y Modelos Computacionales}, enfocado en el problema de planeación de movimiento en robótica multi-agente dentro de entornos discretizados. El proyecto aborda el diseño e implementación de un sistema capaz de coordinar múltiples agentes autónomos en un espacio de trabajo rectangular representado mediante una grilla bidimensional.
+
+La solución propuesta recibe el nombre de \textit{SmartRide Planner}. La idea central consiste en simular un entorno urbano donde varios taxis se desplazan por una ciudad discretizada para recoger usuarios con diferentes niveles de prioridad. Los obstáculos se representan como edificios, las celdas libres como calles, los agentes como taxis y las tareas como usuarios por recoger.
+
+El sistema fue diseñado con una arquitectura modular, separando la interfaz gráfica, la lógica de simulación, los algoritmos de ruta, la asignación de tareas, el manejo de colisiones y las pruebas. Esta división permite analizar el problema desde el punto de vista computacional y, al mismo tiempo, visualizar su comportamiento mediante una interfaz interactiva.
+
+A nivel algorítmico, se implementaron cuatro métodos de búsqueda de rutas: A*, Dijkstra, BFS y Greedy Best-First Search. Estos algoritmos permiten comparar diferentes formas de explorar el espacio de estados del problema. Adicionalmente, se implementaron dos criterios de asignación: el criterio de taxi más cercano y el criterio de usuario prioritario.
+
+% =========================
+% INTRODUCCIÓN
+% =========================
 \section{Introducción}
+\justifying
 
-\section{Formulación del problema}
+La planeación de movimiento es un problema fundamental en robótica, inteligencia artificial y sistemas autónomos. Su objetivo consiste en determinar una secuencia de movimientos que permita a un agente desplazarse desde una posición inicial hasta una posición objetivo, evitando obstáculos y cumpliendo restricciones del entorno.
 
-\section{Modelado del espacio de trabajo como grafo}
+Cuando el problema involucra más de un agente, la complejidad aumenta significativamente. Además de calcular rutas individuales, es necesario coordinar el movimiento colectivo, evitar colisiones, asignar tareas de manera eficiente y resolver conflictos cuando dos o más agentes intentan ocupar la misma celda o cruzar posiciones simultáneamente.
 
-\section{Algoritmos de ruta}
+Este tipo de problema aparece en aplicaciones como robots móviles en bodegas, vehículos autónomos, drones cooperativos, sistemas de reparto, videojuegos, simuladores urbanos y plataformas de transporte inteligente. Por esta razón, el análisis de algoritmos de búsqueda y estrategias de coordinación resulta especialmente relevante dentro de una asignatura de métodos y modelos computacionales.
+
+En este proyecto, el espacio de trabajo se modela como una grilla de $20 \times 20$. Cada celda puede representar una calle, un edificio, un taxi, una ruta calculada o un usuario. Los taxis se desplazan únicamente en cuatro direcciones cardinales: arriba, abajo, izquierda y derecha. No se permite atravesar obstáculos ni ocupar simultáneamente una celda con otro taxi.
+
+La implementación permite seleccionar el algoritmo de ruta y el criterio de asignación desde la interfaz gráfica. Esta separación es importante: el algoritmo de ruta define cómo se calcula el camino entre un taxi y un usuario, mientras que el criterio de asignación define qué taxi atiende a qué usuario.
+
+% =========================
+% OBJETIVOS
+% =========================
+\section{Objetivos}
+
+\subsection{Objetivo General}
+
+Desarrollar un sistema de planeación de movimiento multi-agente sobre una grilla discreta que permita coordinar taxis autónomos para recoger usuarios, evitando obstáculos y colisiones mediante algoritmos de búsqueda sobre grafos y criterios de asignación de tareas.
+
+\subsection{Objetivos Específicos}
+
+\begin{itemize}
+    \item Representar el espacio de trabajo como una grilla bidimensional de $20 \times 20$.
+    \item Modelar el entorno como un grafo, donde las celdas transitables son nodos y los movimientos válidos son aristas.
+    \item Implementar algoritmos de ruta basados en búsqueda sobre grafos: A*, Dijkstra, BFS y Greedy Best-First Search.
+    \item Incorporar criterios de asignación para decidir qué taxi atiende a cada usuario.
+    \item Implementar reglas de prevención de colisiones entre agentes.
+    \item Permitir la generación aleatoria de escenarios con obstáculos, taxis y usuarios.
+    \item Validar el comportamiento del sistema mediante una suite de pruebas.
+    \item Visualizar la simulación mediante una interfaz gráfica interactiva.
+\end{itemize}
+
+% =========================
+% FORMULACIÓN DEL PROBLEMA
+% =========================
+\section{Formulación del Problema}
+\justifying
+
+Se considera un espacio de trabajo discreto definido por una grilla rectangular:
+
+\begin{equation}
+W = \{(r,c) \mid 0 \leq r < 20,\; 0 \leq c < 20\}
+\end{equation}
+
+donde $r$ representa la fila y $c$ representa la columna de una celda. Dentro de este espacio existen obstáculos, taxis y usuarios.
+
+Sea:
+
+\begin{itemize}
+    \item $A = \{a_1,a_2,\dots,a_n\}$ el conjunto de taxis o agentes.
+    \item $U = \{u_1,u_2,\dots,u_m\}$ el conjunto de usuarios o tareas.
+    \item $O \subset W$ el conjunto de obstáculos.
+    \item $p_j \in \{1,2,3\}$ la prioridad del usuario $u_j$.
+    \item $x_i(k)$ la posición del taxi $a_i$ en el instante discreto $k$.
+    \item $q_j$ la posición del usuario $u_j$.
+\end{itemize}
+
+Cada taxi puede desplazarse a una celda adyacente válida. El conjunto de movimientos permitidos está dado por:
+
+\begin{equation}
+(r,c) \rightarrow (r+1,c)
+\end{equation}
+
+\begin{equation}
+(r,c) \rightarrow (r-1,c)
+\end{equation}
+
+\begin{equation}
+(r,c) \rightarrow (r,c+1)
+\end{equation}
+
+\begin{equation}
+(r,c) \rightarrow (r,c-1)
+\end{equation}
+
+siempre que la nueva celda esté dentro de la grilla y no pertenezca al conjunto de obstáculos.
+
+El objetivo general del sistema consiste en completar todas las tareas minimizando el costo de desplazamiento y evitando conflictos entre taxis. Una formulación general del costo puede expresarse como:
+
+\begin{equation}
+J = \sum_{(i,j)\in \mathcal{M}} d(a_i,u_j)
+\end{equation}
+
+donde $\mathcal{M}$ representa el conjunto de asignaciones taxi-usuario y $d(a_i,u_j)$ es la longitud de la ruta calculada entre el taxi $a_i$ y el usuario $u_j$.
+
+% =========================
+% MODELADO COMO GRAFO
+% =========================
+\section{Modelado Matemático como Grafo}
+\justifying
+
+El entorno se representa mediante un grafo no dirigido:
+
+\begin{equation}
+G = (V,E)
+\end{equation}
+
+donde $V$ es el conjunto de celdas transitables y $E$ el conjunto de conexiones entre celdas adyacentes.
+
+El conjunto de nodos se define como:
+
+\begin{equation}
+V = W \setminus O
+\end{equation}
+
+y el conjunto de aristas se define como:
+
+\begin{equation}
+E = \{((r,c),(r',c')) \mid |r-r'| + |c-c'| = 1\}
+\end{equation}
+
+siempre que ambas celdas pertenezcan a $V$.
+
+Esta representación permite transformar el problema de navegación en un problema de búsqueda de caminos sobre grafos. Cada taxi busca una ruta desde su posición actual hasta la posición del usuario asignado.
+
+La distancia Manhattan utilizada como heurística se define como:
+
+\begin{equation}
+h(n) = |r_n-r_g| + |c_n-c_g|
+\end{equation}
+
+donde $(r_n,c_n)$ es la posición del nodo actual y $(r_g,c_g)$ es la posición objetivo.
+
+% =========================
+% RESTRICCIONES DE COLISIÓN
+% =========================
+\section{Restricciones de Movimiento y Colisión}
+\justifying
+
+El sistema implementa reglas para evitar conflictos entre taxis. La primera restricción impide que dos taxis ocupen la misma celda en el mismo instante:
+
+\begin{equation}
+x_i(k) \neq x_l(k), \quad \forall i \neq l
+\end{equation}
+
+La segunda restricción evita colisiones por intercambio de posición. Esto ocurre cuando dos taxis intentan intercambiar sus celdas simultáneamente:
+
+\begin{equation}
+\neg \left[x_i(k+1)=x_l(k) \land x_l(k+1)=x_i(k)\right]
+\end{equation}
+
+Adicionalmente, cuando existe un conflicto local, el sistema aplica una regla de derecho de paso. Esta regla favorece al taxi que atiende al usuario de mayor prioridad. En caso de empate, se favorece al taxi con menor distancia restante hacia su objetivo. Si el empate persiste, se utiliza el identificador del taxi como criterio determinista de desempate.
+
+% =========================
+% METODOLOGÍA
+% =========================
+\section{Metodología}
+\justifying
+
+El desarrollo del proyecto siguió una metodología modular e incremental. Inicialmente se definió el espacio de trabajo como una grilla discreta y se implementaron las estructuras básicas de datos para representar posiciones, taxis, usuarios y obstáculos.
+
+Posteriormente se implementaron los algoritmos de ruta. Cada algoritmo recibe como entrada la grilla, la posición inicial, la posición objetivo y un conjunto opcional de posiciones temporalmente bloqueadas. Como salida, retorna una lista ordenada de celdas que representa la ruta calculada.
+
+Después se implementó el módulo de asignación. Este módulo decide qué taxi debe atender a qué usuario de acuerdo con el criterio seleccionado en la interfaz. Finalmente se integró el manejo de colisiones, la replaneación de rutas y la interfaz gráfica.
+
+La validación se realizó mediante pruebas unitarias y de integración ejecutadas desde el archivo \texttt{tests.py}. Estas pruebas permitieron verificar el comportamiento del sistema en escenarios con y sin obstáculos, asignación multi-agente, colisiones, replaneación y selección de algoritmos.
+
+% =========================
+% ARQUITECTURA DEL SISTEMA
+% =========================
+\section{Arquitectura del Sistema}
+\justifying
+
+La solución se organizó en módulos independientes para facilitar el mantenimiento, la validación y la extensión del sistema.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Módulos principales del sistema}
+\begin{tabularx}{\textwidth}{>{\ttfamily}p{4.2cm} X}
+\toprule
+\textbf{Archivo} & \textbf{Función principal} \\
+\midrule
+main.py & Punto de entrada de la aplicación. \\
+gui.py & Interfaz gráfica, controles de simulación, selección de escenario, selección de algoritmo de ruta y criterio de asignación. \\
+simulation.py & Motor principal de simulación; coordina asignación, movimiento, replaneación y finalización de tareas. \\
+pathfinding.py & Implementación de los algoritmos A*, Dijkstra, BFS y Greedy Best-First. \\
+assignment.py & Asignación de taxis a usuarios según el criterio seleccionado. \\
+collision\_manager.py & Resolución de conflictos de movimiento, colisiones por misma celda e intercambio de posiciones. \\
+scenario\_generator.py & Generación aleatoria de escenarios, taxis, usuarios y obstáculos. \\
+city\_grid.py & Modelo de la grilla, celdas libres, obstáculos, taxis y usuarios. \\
+models.py & Definición de estructuras de datos utilizadas por la simulación. \\
+tests.py & Suite de pruebas unitarias y de integración del sistema. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\safeimage{interfaz_completa.jpeg}{0.85}{Interfaz gráfica completa de SmartRide Planner. Se observa la grilla urbana de $20 \times 20$, los taxis en color amarillo, los usuarios con color según prioridad, los obstáculos como edificios, el algoritmo de ruta seleccionado, el criterio de asignación y los controles de simulación.}
+
+% =========================
+% ALGORITMOS IMPLEMENTADOS
+% =========================
+\section{Algoritmos de Ruta Implementados}
+\justifying
+
+Los algoritmos de ruta permiten calcular el camino desde un taxi hasta un usuario. En todos los casos, el problema se resuelve sobre el grafo asociado a la grilla.
 
 \subsection{A*}
 
+A* combina el costo acumulado desde el nodo inicial con una estimación heurística hacia el objetivo. Su función de evaluación se define como:
+
+\begin{equation}
+f(n)=g(n)+h(n)
+\end{equation}
+
+donde $g(n)$ es el costo acumulado y $h(n)$ es la distancia Manhattan estimada hasta el objetivo.
+
+A* resulta adecuado para este proyecto porque dirige la búsqueda hacia el objetivo sin ignorar el costo real acumulado.
+
 \subsection{Dijkstra}
 
-\subsection{BFS}
+Dijkstra calcula caminos mínimos considerando el costo acumulado desde el origen. En esta implementación, cada movimiento tiene costo unitario, por lo que Dijkstra puede encontrar rutas mínimas en número de pasos.
 
-\subsection{Greedy Best-First}
+A diferencia de A*, Dijkstra no utiliza heurística. Por esta razón, puede explorar más nodos antes de llegar al objetivo.
 
-\section{Asignación multiagente}
+\subsection{Breadth-First Search}
 
-\section{Manejo de colisiones}
+BFS explora el grafo por niveles. En grafos no ponderados, como la grilla utilizada en este proyecto, BFS encuentra rutas mínimas en número de pasos.
 
-\section{Casos de prueba}
+Su implementación utiliza una cola FIFO para procesar los nodos en el orden en que son descubiertos.
 
-\section{Resultados}
+\subsection{Greedy Best-First Search}
 
+Greedy Best-First Search utiliza únicamente la heurística para decidir qué nodo explorar primero. En este proyecto se usa distancia Manhattan como función heurística.
+
+Este método puede encontrar rutas rápidamente, pero no garantiza la ruta más corta, ya que no considera el costo acumulado del recorrido.
+
+\safeimage{ruta_asterisco.jpeg}{0.70}{Ejemplo de ruta calculada sobre la grilla evitando obstáculos. Las celdas azul claro representan la trayectoria planeada desde un taxi hasta un usuario.}
+
+% =========================
+% CRITERIOS DE ASIGNACIÓN
+% =========================
+\section{Criterios de Asignación de Tareas}
+\justifying
+
+Además del cálculo de rutas, el sistema debe decidir qué taxi atiende a cada usuario. Para ello se implementaron dos criterios de asignación.
+
+Es importante diferenciar entre algoritmo de ruta y criterio de asignación. El algoritmo de ruta calcula el camino entre un taxi y un usuario sobre la grilla; por ejemplo, A*, Dijkstra, BFS o Greedy Best-First. En cambio, el criterio de asignación decide qué taxi atiende a qué usuario usando la información entregada por el algoritmo de ruta. Por esta razón, un mismo escenario puede generar decisiones distintas si se cambia el criterio de asignación, aunque el algoritmo de ruta sea el mismo.
+
+\subsection{Taxi más cercano}
+
+Este criterio evalúa las rutas posibles entre taxis disponibles y usuarios pendientes. Para cada par taxi-usuario se calcula una ruta y se obtiene su longitud:
+
+\begin{equation}
+d_{ij} = |\pi_{ij}|
+\end{equation}
+
+donde $\pi_{ij}$ es la ruta calculada entre el taxi $a_i$ y el usuario $u_j$.
+
+La asignación se realiza seleccionando la menor distancia:
+
+\begin{equation}
+(i^*,j^*) = \arg\min_{i,j} d_{ij}
+\end{equation}
+
+Este criterio prioriza la reducción del tiempo estimado de llegada.
+
+\subsection{Usuario prioritario}
+
+En este criterio se atienden primero los usuarios con mayor prioridad. Las prioridades se codifican de la siguiente manera:
+
+\begin{table}[H]
+\centering
+\caption{Codificación de prioridades de usuarios}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Color} & \textbf{Prioridad} & \textbf{Significado} \\
+\midrule
+Azul & 1 & Normal \\
+Morado & 2 & Importante \\
+Rojo & 3 & Urgente \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Primero se selecciona el usuario con mayor prioridad:
+
+\begin{equation}
+j^* = \arg\max_j p_j
+\end{equation}
+
+Luego se asigna el taxi con menor distancia hacia dicho usuario:
+
+\begin{equation}
+i^* = \arg\min_i d_{ij^*}
+\end{equation}
+
+Este criterio permite simular situaciones donde no basta con atender al usuario más cercano, sino que se debe considerar la urgencia de la solicitud.
+
+% =========================
+% ESCENARIOS
+% =========================
+\section{Escenarios de Simulación}
+\justifying
+
+La interfaz permite seleccionar tres escenarios principales. Todos se ejecutan sobre una grilla de $20 \times 20$, pero difieren en la distribución de obstáculos, taxis y usuarios.
+
+Además, la interfaz permite configurar la cantidad de taxis y usuarios antes de reiniciar la simulación. En la implementación final se permite trabajar con hasta tres taxis y con una cantidad variable de usuarios entre uno y nueve. Esta configuración permite evaluar el comportamiento del sistema con diferentes niveles de carga sin modificar directamente el código fuente.
+
+\subsection{Ciudad completa}
+
+Representa un escenario general con taxis, usuarios y obstáculos distribuidos en diferentes zonas de la grilla. Este escenario permite observar el comportamiento global del sistema.
+
+\subsection{Ciudad con obstáculos}
+
+Este escenario enfatiza la presencia de edificios, obligando a los algoritmos de ruta a buscar trayectorias alternativas. Es útil para verificar que los taxis no atraviesan obstáculos.
+
+\subsection{Zona de alta demanda}
+
+En este escenario se concentran varios usuarios en una región del entorno. Esto permite evaluar la asignación de taxis cuando existen múltiples solicitudes cercanas o con diferentes prioridades.
+
+% =========================
+% CASOS DE PRUEBA
+% =========================
+\section{Casos de Prueba y Validación}
+\justifying
+
+La validación del proyecto se realizó mediante una suite de pruebas implementada en el archivo \texttt{tests.py}. Esta suite evalúa tanto funciones individuales como la integración completa del sistema.
+
+El resultado final obtenido fue:
+
+\begin{center}
+\textbf{28 OK | 0 ERROR | Total: 28}
+\end{center}
+
+\safeimage{pruebas_terminal.png}{0.70}{Resultado de la suite de pruebas ejecutada desde terminal. Se observa que las 28 pruebas fueron aprobadas sin errores.}
+
+
+La ejecución de la suite se realizó desde la terminal mediante el comando:
+
+\begin{center}
+\texttt{python tests.py}
+\end{center}
+
+Este resultado indica que todas las pruebas definidas fueron superadas correctamente, incluyendo pruebas de rutas, asignación, colisiones, replaneación y configuración de escenarios.
+
+
+Los principales grupos de pruebas fueron:
+
+\begin{itemize}
+    \item Búsqueda A* sin obstáculos.
+    \item Búsqueda A* con obstáculos.
+    \item Rutas válidas con BFS.
+    \item Rutas válidas con Dijkstra.
+    \item Rutas válidas con Greedy Best-First.
+    \item Asignación de múltiples taxis y usuarios.
+    \item Detección de colisión por misma celda.
+    \item Detección de colisión por intercambio de posición.
+    \item Resolución de cruce local con derecho de paso.
+    \item Generación aleatoria reproducible mediante semilla.
+    \item Escenarios aleatorios sin superposición.
+    \item Verificación de usuarios alcanzables.
+    \item Replaneación de rutas bloqueadas por taxis detenidos.
+    \item Configuración variable de número de taxis.
+    \item Configuración variable de número de usuarios.
+    \item Ejecución de la simulación con todos los algoritmos de ruta.
+\end{itemize}
+
+\safeimage{finalizacion.jpeg}{0.85}{Finalización de una simulación: los taxis completan las tareas asignadas y no quedan usuarios pendientes en la grilla.}
+
+% =========================
+% RESULTADOS
+% =========================
+\section{Resultados y Discusión}
+\justifying
+
+El sistema desarrollado permitió verificar el funcionamiento de la planeación de movimiento multi-agente en un entorno discreto. Los taxis fueron capaces de calcular rutas hacia los usuarios, evitar obstáculos, respetar reglas de colisión y completar tareas bajo distintos escenarios.
+
+Desde el punto de vista algorítmico, A*, Dijkstra y BFS permiten encontrar rutas válidas sobre la grilla. En entornos no ponderados, BFS y Dijkstra pueden producir rutas equivalentes en longitud, aunque su estrategia de exploración difiere. A* incorpora una heurística que dirige la búsqueda hacia el objetivo, lo cual resulta conveniente para navegación en grillas.
+
+Greedy Best-First Search también encontró rutas válidas en los escenarios probados, pero su comportamiento depende fuertemente de la heurística. Debido a que no considera el costo acumulado, puede producir rutas menos convenientes en presencia de obstáculos.
+
+En cuanto a la asignación, el criterio de taxi más cercano prioriza la minimización de la distancia inmediata, mientras que el criterio de usuario prioritario permite atender primero solicitudes urgentes. Esta diferencia permite analizar cómo una misma configuración de taxis y usuarios puede generar decisiones distintas dependiendo del criterio seleccionado.
+
+\begin{table}[H]
+\centering
+\caption{Comparación cualitativa de algoritmos de ruta}
+\begin{tabular}{p{3cm} p{3cm} p{3cm} p{5cm}}
+\toprule
+\textbf{Algoritmo} & \textbf{Usa costo acumulado} & \textbf{Usa heurística} & \textbf{Observación} \\
+\midrule
+A* & Sí & Sí & Buen equilibrio entre búsqueda dirigida y costo real. \\
+Dijkstra & Sí & No & Adecuado para caminos mínimos, pero puede explorar más nodos. \\
+BFS & Implícito en niveles & No & Útil en grafos no ponderados. \\
+Greedy Best-First & No & Sí & Rápido, pero no garantiza ruta mínima. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textit{Nota: la comparación presentada es cualitativa y se basa en el comportamiento esperado de cada algoritmo y en la validación funcional de la implementación. La medición cuantitativa de nodos explorados y tiempos de ejecución se propone como trabajo futuro.}
+
+
+% =========================
+% APLICACIONES
+% =========================
+\section{Aplicaciones en la Vida Real}
+\justifying
+
+El problema abordado tiene relación directa con diferentes aplicaciones reales:
+
+\begin{itemize}
+    \item \textbf{Logística y bodegas inteligentes:} robots móviles que transportan productos entre estaciones.
+    \item \textbf{Movilidad autónoma:} vehículos que calculan rutas en entornos urbanos.
+    \item \textbf{Drones cooperativos:} equipos de drones que cubren zonas de vigilancia o monitoreo.
+    \item \textbf{Robótica de rescate:} robots que exploran áreas peligrosas evitando colisiones.
+    \item \textbf{Videojuegos y simulación:} agentes no jugables que deben navegar entornos con obstáculos.
+\end{itemize}
+
+% =========================
+% LIMITACIONES
+% =========================
+\section{Limitaciones}
+\justifying
+
+Aunque el sistema cumple con los objetivos planteados, existen algunas limitaciones:
+
+\begin{itemize}
+    \item Los obstáculos no cambian de posición durante la ejecución de la simulación.
+    \item El movimiento se limita a cuatro direcciones cardinales.
+    \item No se modela aceleración, velocidad continua ni dinámica física real de los vehículos.
+    \item La comparación de algoritmos se realizó principalmente de manera funcional y cualitativa.
+    \item La asignación implementada utiliza criterios heurísticos locales, por lo que no resuelve una optimización global exacta para todos los taxis y usuarios de forma simultánea.
+\end{itemize}
+
+% =========================
+% TRABAJO FUTURO
+% =========================
+\section{Trabajo Futuro}
+\justifying
+
+Como posibles mejoras futuras se proponen:
+
+\begin{itemize}
+    \item Incorporar obstáculos dinámicos durante la ejecución.
+    \item Añadir navegación diagonal y pesos variables por tipo de celda.
+    \item Registrar métricas cuantitativas por algoritmo, como nodos explorados, tiempo de ejecución, longitud promedio de ruta y número de replaneaciones.
+    \item Implementar algoritmos de asignación global, como el método Húngaro.
+    \item Evaluar algoritmos adicionales como RRT en espacios continuos.
+    \item Implementar comunicación explícita entre agentes.
+    \item Añadir exportación de resultados para análisis estadístico.
+\end{itemize}
+
+% =========================
+% CONCLUSIONES
+% =========================
 \section{Conclusiones}
+\justifying
+
+El proyecto permitió desarrollar una solución funcional para el problema de planeación de movimiento multi-agente en un entorno discreto. Mediante la representación del espacio como un grafo, fue posible aplicar algoritmos de búsqueda clásicos para calcular rutas entre taxis y usuarios.
+
+La separación entre algoritmo de ruta y criterio de asignación resultó fundamental para organizar correctamente el problema. Los algoritmos A*, Dijkstra, BFS y Greedy Best-First determinan cómo se calcula el camino, mientras que los criterios de taxi más cercano y usuario prioritario determinan cómo se asignan las tareas.
+
+La implementación de reglas de colisión permitió evitar conflictos por ocupación simultánea de celdas y por intercambio de posiciones. Además, la replaneación dinámica ayudó a resolver bloqueos persistentes causados por otros taxis detenidos en la ruta.
+
+La suite de pruebas permitió verificar el comportamiento principal del sistema y confirmó que los módulos implementados funcionan de forma integrada. El resultado de 28 pruebas aprobadas y 0 errores proporciona evidencia de que el sistema cumple con los requerimientos funcionales principales del examen.
+
+En general, el desarrollo de SmartRide Planner permitió integrar conceptos vistos en la asignatura, especialmente búsqueda sobre grafos, asignación de tareas y coordinación multi-agente. La simulación no pretende representar toda la complejidad de un sistema real de transporte, pero sí permite observar de manera clara cómo diferentes algoritmos y criterios de decisión afectan el comportamiento de los agentes en un entorno discretizado.
+
+
+
+
+% =========================
+% GESTIÓN COLABORATIVA
+% =========================
+\section{Gestión Colaborativa en GitHub}
+\justifying
+
+El desarrollo del proyecto se gestionó mediante un repositorio en GitHub, utilizando la rama \texttt{main} como rama principal para la integración final del trabajo. Con el fin de mantener una organización adecuada y evidenciar el proceso colaborativo, se empleó una metodología basada en el uso de ramas independientes y \textit{Pull Requests}.
+
+Cada integrante realizó aportes al proyecto desde su respectiva rama de trabajo, permitiendo un control organizado de cambios, revisiones e integración progresiva de los avances realizados. Posteriormente, los cambios fueron integrados a la rama principal mediante \textit{Pull Requests}, dejando evidencia del historial de \textit{commits} y del flujo de desarrollo colaborativo.
+
+\safeimage{github_commits.png}{0.85}{Evidencia de gestión colaborativa en GitHub. Se observan los Pull Requests cerrados e integrados a la rama principal del repositorio.}
+
+
+% =========================
+% REPOSITORIO Y VIDEO
+% =========================
+\section{Repositorio y Video}
+\justifying
+
+El código fuente completo del proyecto se encuentra disponible en el siguiente repositorio de GitHub:
+
+\begin{center}
+\url{https://github.com/SantiagoC97/multi_agent_motion_planning}
+\end{center}
+
+Se puede acceder al vídeo se sustentación por medio del siguiente enlace:
+
+\begin{center}
+\textit{https://youtu.be/fboDnFwAFgw}
+\end{center}
+
+% =========================
+% REFERENCIAS
+% =========================
+\begin{thebibliography}{99}
+
+\bibitem{russell}
+S. Russell and P. Norvig,
+\textit{Artificial Intelligence: A Modern Approach},
+4th ed. Pearson Education, 2020.
+
+\bibitem{cormen}
+T. H. Cormen, C. E. Leiserson, R. L. Rivest, and C. Stein,
+\textit{Introduction to Algorithms},
+4th ed. MIT Press, 2022.
+
+\bibitem{lavalle}
+S. M. LaValle,
+\textit{Planning Algorithms},
+Cambridge University Press, 2006.
+
+\bibitem{hart}
+P. Hart, N. Nilsson, and B. Raphael,
+``A Formal Basis for the Heuristic Determination of Minimum Cost Paths,''
+\textit{IEEE Transactions on Systems Science and Cybernetics},
+vol. 4, no. 2, pp. 100--107, 1968.
+
+\bibitem{dijkstra}
+E. W. Dijkstra,
+``A Note on Two Problems in Connexion with Graphs,''
+\textit{Numerische Mathematik},
+vol. 1, pp. 269--271, 1959.
+
+\end{thebibliography}
 
 \end{document}
